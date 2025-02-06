@@ -11,6 +11,7 @@ import {
   GitFetchLoaderData,
   GitRepoLoaderData,
   GitStatusResult,
+  GitUndoResult,
   PullFromGitRemoteResult,
   PushToGitRemoteResult,
 } from '../../routes/git-actions';
@@ -58,6 +59,8 @@ export const GitSyncDropdown: FC<Props> = ({ className, gitRepository, isInsomni
   const gitRepoDataFetcher = useFetcher<GitRepoLoaderData>();
   const gitFetchFetcher = useFetcher<GitFetchLoaderData>();
   const gitStatusFetcher = useFetcher<GitStatusResult>();
+  const gitResetFetcher = useFetcher<GitUndoResult>();
+
 
   const loadingPush = gitPushFetcher.state === 'loading';
   const loadingPull = gitPullFetcher.state === 'loading';
@@ -155,6 +158,16 @@ export const GitSyncDropdown: FC<Props> = ({ className, gitRepository, isInsomni
     );
   }
 
+    async function handleUndo() {
+    gitPushFetcher.submit(
+      {},
+      {
+        action: `/organization/${organizationId}/project/${projectId}/workspace/${workspaceId}/git/undo`,
+        method: 'post',
+      }
+    );
+  }
+
   let iconClassName = 'fa-brands fa-git-alt';
   const providerName = getOauth2FormatName(gitRepository?.credentials);
   if (providerName === 'github') {
@@ -192,7 +205,7 @@ export const GitSyncDropdown: FC<Props> = ({ className, gitRepository, isInsomni
       id: 2,
       stayOpenAfterClick: true,
       icon: loadingPull ? 'refresh fa-spin' : 'cloud-download',
-      label: 'Pull',
+      label: 'Pull 2',
       onClick: async () => {
         gitPullFetcher.submit(
           {},
@@ -212,12 +225,24 @@ export const GitSyncDropdown: FC<Props> = ({ className, gitRepository, isInsomni
     },
     {
       id: 4,
+      stayOpenAfterClick: true,
+      icon: loadingPush ? 'refresh fa-spin' : 'undo',
+      label: 'Undo',
+      onClick: () => showAlert({
+        title: 'Undo Changes',
+        message: 'You are about to undo your changes. Are you sure you want to proceed?',
+        addCancel: true,
+        onConfirm: () => handleUndo(),
+      }),
+    },
+    {
+      id: 5,
       icon: 'clock-o',
       label: <span>History</span>,
       onClick: () => setIsGitLogModalOpen(true),
     },
     {
-      id: 5,
+      id: 6,
       stayOpenAfterClick: true,
       icon: loadingFetch ? 'refresh fa-spin' : 'refresh',
       label: 'Fetch',
