@@ -1018,6 +1018,7 @@ export const pullFromGitRemoteAction: ActionFunction = async ({
   const providerName = getOauth2FormatName(gitRepository.credentials);
 
   try {
+    await GitVCS.undoPendingChanges();
     await GitVCS.fetch({
       singleBranch: true,
       depth: 1,
