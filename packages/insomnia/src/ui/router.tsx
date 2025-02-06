@@ -724,6 +724,13 @@ export const setupRouterStuff = (beginningPath: string | null = null) => {
                                         await import('./routes/git-actions')
                                       ).pushToGitRemoteAction(...args),
                                   },
+                                  {
+                                    path:'undo',
+                                    action: async (...args) =>
+                                      (
+                                        await import('./routes/git-actions')
+                                      ).gitUndoAction(...args),
+                                  },
                                 ],
                               },
                             ],

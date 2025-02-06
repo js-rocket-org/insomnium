@@ -1018,7 +1018,6 @@ export const pullFromGitRemoteAction: ActionFunction = async ({
   const providerName = getOauth2FormatName(gitRepository.credentials);
 
   try {
-    await GitVCS.undoPendingChanges();
     await GitVCS.fetch({
       singleBranch: true,
       depth: 1,
@@ -1243,6 +1242,41 @@ export const gitStatusAction: ActionFunction = async ({
       status: {
         localChanges: 0,
       },
+    };
+  }
+};
+
+
+export interface GitUndoResult {
+  errors?: string[];
+}
+
+export const gitUndoAction: ActionFunction = async ({
+  params,
+}): Promise<GitUndoResult> => {
+  const { workspaceId } = params;
+  guard(typeof workspaceId === "string", "Workspace Id is required");
+
+  const workspace = await models.workspace.getById(workspaceId);
+  guard(workspace, "Workspace not found");
+
+  const workspaceMeta = await models.workspaceMeta.getByParentId(workspaceId);
+
+  const repoId = workspaceMeta?.gitRepositoryId;
+
+  guard(repoId, "Workspace is not linked to a git repository");
+
+  const gitRepository = await models.gitRepository.getById(repoId);
+
+  guard(gitRepository, "Git Repository not found");
+
+  try {
+    await GitVCS.undoPendingChanges();
+    return {};
+  } catch (e) {
+    console.error(e);
+    return {
+      errors: ["Error while resetting changes"],
     };
   }
 };
